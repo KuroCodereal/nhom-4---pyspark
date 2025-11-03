@@ -1,3 +1,6 @@
+import os
+os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-11-openjdk"
+
 # -*- coding: utf-8 -*-
 import os, sys
 from typing import List
@@ -493,3 +496,4 @@ def favicon():
 
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT, debug=True, use_reloader=False, threaded=True)
+
