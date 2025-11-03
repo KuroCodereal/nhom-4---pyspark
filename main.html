@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Business Portal — Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; }
+      .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px;
+        box-shadow:0 1px 2px rgba(2,6,23,.04), 0 8px 16px rgba(2,6,23,.06); }
+      .tab-btn { padding:.5rem 1rem; border-radius:12px; font-size:.875rem; font-weight:600; cursor:pointer; border:1px solid transparent; }
+      .tab-btn.active { background:#0f172a; color:#fff; }
+      .tab-btn.inactive { background:#fff; color:#334155; }
+      .tab-btn.inactive:hover { background:#f1f5f9; }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50">
+    <!-- Topbar -->
+    <header class="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-slate-900 rounded-xl"></div>
+          <div>
+            <h1 class="text-xl font-bold leading-tight">Business Portal</h1>
+            <p class="text-xs text-slate-500 -mt-1">Tra cứu & phân tích dữ liệu doanh nghiệp</p>
+          </div>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+          <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">PySpark</span>
+          <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">Flask</span>
+          <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">Tailwind</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <!-- Tabs -->
+      <div class="card p-3 flex flex-wrap gap-2">
+        <button class="tab-btn active"  data-tab="overview">Tổng quan</button>
+        <button class="tab-btn inactive" data-tab="analytics">Phân tích</button>
+        <button class="tab-btn inactive" data-tab="yelp">Yelp Hours Finder</button>
+        <button class="tab-btn inactive" data-tab="reviews">Yelp Reviews</button>
+        <button class="tab-btn inactive" data-tab="about">Giới thiệu</button>
+      </div>
+
+      <!-- =================== Panels =================== -->
+
+      <!-- Overview -->
+      <section id="panel-overview" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-slate-600">Doanh nghiệp hoạt động</h3>
+            <p class="text-3xl font-bold mt-2" id="kpi-active">—</p>
+            <p class="text-xs text-slate-500 mt-1">Có ít nhất 1 ngày có giờ mở cửa.</p>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-slate-600">Số thành phố</h3>
+            <p class="text-3xl font-bold mt-2" id="kpi-cities">—</p>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-sm font-semibold text-slate-600">Số tiểu bang</h3>
+            <p class="text-3xl font-bold mt-2" id="kpi-states">—</p>
+          </div>
+        </div>
+
+        <!-- Business Overview -->
+        <div class="card p-5">
+          <h3 class="text-lg font-semibold mb-3">Business Overview</h3>
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Tìm theo tên</label>
+              <input id="ov-filter" class="border rounded-lg px-3 py-2 w-72" placeholder="Gõ để lọc nhanh...">
+            </div>
+            <div>
+              <label class="block text-sm text-slate-600 mb-1">Chọn doanh nghiệp</label>
+              <select id="ov-bid-select" class="border rounded-lg px-3 py-2 w-[34rem]">
+                <option value="">— Đang tải danh sách… —</option>
+              </select>
+            </div>
+            <button id="ov-load" class="tab-btn active">Xem</button>
+            <span id="ov-msg" class="text-sm text-slate-500"></span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="card p-4">
+              <h4 class="font-semibold mb-2">Giờ mở cửa</h4>
+              <div id="ov-hours" class="text-sm text-slate-700">—</div>
+            </div>
+            <div class="card p-4">
+              <h4 class="font-semibold mb-2">Sao trung bình</h4>
+              <div id="ov-avg" class="text-3xl font-bold">—</div>
+              <div id="ov-meta" class="text-xs text-slate-500 mt-1">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card p-5">
+            <h3 class="text-lg font-semibold mb-2">Phân bố sao (toàn bộ)</h3>
+            <div id="chart-stars" class="space-y-2"></div>
+          </div>
+          <div class="card p-5">
+            <h3 class="text-lg font-semibold mb-2">Tổng số review theo năm (toàn bộ)</h3>
+            <div id="chart-years" class="space-y-1"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analytics -->
+      <section id="panel-analytics" class="hidden space-y-4">
+        <div class="card p-5">
+          <h3 class="text-lg font-semibold mb-2">Phân tích (demo)</h3>
+          <p class="text-sm text-slate-600 mb-3">
+            Khu vực này có thể mở rộng để hiển thị biểu đồ (Recharts/Chart.js) về phân bố giờ mở cửa theo ngày.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card p-4">
+              <h4 class="font-semibold text-slate-700 mb-2">Top giờ mở phổ biến</h4>
+              <div id="list-popular-open" class="text-sm text-slate-600">—</div>
+            </div>
+            <div class="card p-4">
+              <h4 class="font-semibold text-slate-700 mb-2">Top giờ đóng phổ biến</h4>
+              <div id="list-popular-close" class="text-sm text-slate-600">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Yelp Reviews (iframe) -->
+      <section id="panel-reviews" class="hidden space-y-4">
+        <div class="card p-0 overflow-hidden">
+          <iframe src="/reviews" title="Yelp Reviews" class="w-full" style="height:80vh;border:0"></iframe>
+        </div>
+      </section>
+
+      <!-- Yelp Hours Finder (iframe) -->
+      <section id="panel-yelp" class="hidden space-y-4">
+        <div class="card p-0 overflow-hidden">
+          <iframe src="/yelp" title="Yelp Hours Finder" class="w-full" style="height:80vh;border:0"></iframe>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section id="panel-about" class="hidden space-y-4">
+        <div class="card p-5">
+          <h3 class="text-lg font-semibold">Giới thiệu</h3>
+          <p class="text-sm text-slate-600 mt-2">
+            Business Portal tổng hợp tra cứu & phân tích dữ liệu giờ mở cửa doanh nghiệp, xây bằng
+            <strong>PySpark</strong> + <strong>Flask</strong> + <strong>Tailwind</strong>.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="py-8 text-center text-slate-400 text-sm">© 2025 Business Portal</footer>
+
+    <script>
+      const API = window.location.origin;
+
+      /* Tabs */
+      const tabs = document.querySelectorAll(".tab-btn");
+      const panels = {
+        overview:  document.getElementById("panel-overview"),
+        analytics: document.getElementById("panel-analytics"),
+        yelp:      document.getElementById("panel-yelp"),
+        reviews:   document.getElementById("panel-reviews"),
+        about:     document.getElementById("panel-about"),
+      };
+      tabs.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const target = btn.dataset.tab;
+          tabs.forEach((b) => { b.classList.remove("active","inactive"); b.classList.add(b===btn?"active":"inactive"); });
+          Object.entries(panels).forEach(([k, el]) => { if (k===target) el.classList.remove("hidden"); else el.classList.add("hidden"); });
+        });
+      });
+
+      /* KPI & simple analytics (Hours) */
+      async function loadMeta() {
+        try {
+          const r = await fetch(`${API}/api/meta`);
+          const meta = await r.json();
+          document.getElementById("kpi-cities").textContent = (meta.cities||[]).length;
+          document.getElementById("kpi-states").textContent = (meta.states||[]).length;
+          document.getElementById("kpi-active").textContent = (meta.names||[]).length;
+
+          const opens = new Map(), closes = new Map();
+          for (const day of meta.days || []) {
+            for (const t of meta.time_options?.[day]?.starts || []) opens.set(t, (opens.get(t)||0)+1);
+            for (const t of meta.time_options?.[day]?.ends   || []) closes.set(t, (closes.get(t)||0)+1);
+          }
+          const topN = (map, n=5) => [...map.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n)
+            .map(([k,v])=>`<div class="flex justify-between"><span>${k}</span><span class="text-slate-500">${v}</span></div>`).join("");
+          document.getElementById("list-popular-open").innerHTML  = opens.size  ? topN(opens)  : "—";
+          document.getElementById("list-popular-close").innerHTML = closes.size ? topN(closes) : "—";
+        } catch (e) { console.error(e); }
+      }
+      loadMeta();
+
+      /* Overview: business dropdown + charts */
+      async function fetchJSON(url){ const r = await fetch(url); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+
+      let OV_ALL_BUSINESSES = [];
+
+      function renderHours(hours){
+        if(!hours) return "—";
+        const days=["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+        const lbl ={monday:"Mon",tuesday:"Tue",wednesday:"Wed",thursday:"Thu",friday:"Fri",saturday:"Sat",sunday:"Sun"};
+        return days.map(d=>{
+          const h=hours[d];
+          if(!h) return `<div class='flex justify-between'><span>${lbl[d]}</span><span class='text-slate-400'>—</span></div>`;
+          const ov=h.overnight?` <span class="text-xs text-amber-600">(overnight)</span>`:"";
+          return `<div class='flex justify-between'><span>${lbl[d]}</span><span>${h.open}–${h.close}${ov}</span></div>`;
+        }).join("");
+      }
+
+      function renderBusinessOptions(list) {
+        const sel = document.getElementById("ov-bid-select");
+        sel.innerHTML = "";
+        if (!list.length) {
+          sel.innerHTML = `<option value="">— Không có kết quả —</option>`;
+          return;
+        }
+        for (const it of list) {
+          const label = `${it.name || "(No name)"} — ${it.city || ""}, ${it.state || ""}`;
+          const opt = document.createElement("option");
+          opt.value = it.business_id;
+          opt.textContent = label;
+          sel.appendChild(opt);
+        }
+      }
+
+      async function loadBusinessList() {
+        try {
+          const data = await fetchJSON(`/api/business/list?limit=500`);
+          OV_ALL_BUSINESSES = data.results || [];
+          renderBusinessOptions(OV_ALL_BUSINESSES);
+        } catch (e) {
+          console.error(e);
+          const sel = document.getElementById("ov-bid-select");
+          sel.innerHTML = `<option value="">— Lỗi tải danh sách —</option>`;
+        }
+      }
+      loadBusinessList();
+
+      document.getElementById("ov-filter").addEventListener("input", (e) => {
+        const q = e.target.value.trim().toLowerCase();
+        if (!q) { renderBusinessOptions(OV_ALL_BUSINESSES); return; }
+        const filtered = OV_ALL_BUSINESSES.filter(it =>
+          (it.name || "").toLowerCase().includes(q) ||
+          (it.city || "").toLowerCase().includes(q) ||
+          (it.state || "").toLowerCase().includes(q)
+        );
+        renderBusinessOptions(filtered);
+      });
+
+      async function loadOverviewBusiness(){
+        const bid = document.getElementById("ov-bid-select").value.trim();
+        const msg=document.getElementById("ov-msg");
+        const hoursDiv=document.getElementById("ov-hours");
+        const avgDiv=document.getElementById("ov-avg");
+        const metaDiv=document.getElementById("ov-meta");
+        msg.textContent="Đang tải..."; hoursDiv.innerHTML="—"; avgDiv.textContent="—"; metaDiv.textContent="—";
+        try{
+          const j=await fetchJSON(`/api/overview/business?business_id=${encodeURIComponent(bid)}`);
+          hoursDiv.innerHTML=renderHours(j.business?.hours);
+          avgDiv.textContent=(j.reviews_summary?.avg_stars ?? "—");
+          metaDiv.textContent=`Tổng review: ${j.reviews_summary?.total ?? 0} • ${j.business?.name || ""} (${j.business?.city || ""}, ${j.business?.state || ""})`;
+          msg.textContent="";
+        }catch(e){ msg.textContent="Không tìm thấy hoặc lỗi dữ liệu."; console.error(e); }
+      }
+      document.getElementById("ov-load").addEventListener("click", loadOverviewBusiness);
+      document.getElementById("ov-bid-select").addEventListener("change", () => {
+        if (document.getElementById("ov-bid-select").value) loadOverviewBusiness();
+      });
+
+      function drawBarRow(label,value,max){
+        const pct = max>0 ? Math.round((value/max)*100) : 0;
+        return `<div class='flex items-center gap-3'>
+          <div class='w-14 text-right text-sm text-slate-600'>${label}</div>
+          <div class='flex-1 bg-slate-100 rounded'><div style='width:${pct}%;' class='h-3 rounded bg-slate-800'></div></div>
+          <div class='w-12 text-right text-sm text-slate-600'>${value}</div>
+        </div>`;
+      }
+
+      async function drawStars(){
+        const j=await fetchJSON('/api/overview/star-buckets');
+        const buckets=j.buckets||{};
+        const maxv=Math.max(...[1,2,3,4,5].map(s=>buckets[s]||0),0);
+        document.getElementById('chart-stars').innerHTML =
+          [1,2,3,4,5].map(s=>drawBarRow(`${s}⭐`, buckets[s]||0, maxv)).join("") || "—";
+      }
+      async function drawYears(){
+        const j=await fetchJSON('/api/overview/reviews-by-year');
+        const byYear=j.by_year||{};
+        const years=Object.keys(byYear).map(x=>+x).sort((a,b)=>a-b);
+        const maxv=Math.max(0, ...years.map(y=>byYear[y]));
+        document.getElementById('chart-years').innerHTML =
+          years.map(y=>drawBarRow(y, byYear[y], maxv)).join("") || "—";
+      }
+      drawStars(); drawYears();
+    </script>
+  </body>
+</html>

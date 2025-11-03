@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Yelp Hours Finder</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html {
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+      }
+      .card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 10px 18px rgba(2, 6, 23, 0.06);
+        border: 1px solid #e2e8f0;
+      }
+      .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        background: #0f172a;
+        color: #fff;
+        font-weight: 600;
+      }
+      .btn:hover {
+        background: #111827;
+      }
+      .btn-outline {
+        padding: 0.5rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #cbd5e1;
+      }
+      .input,
+      .select {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid #cbd5e1;
+        outline: none;
+      }
+      .input:focus,
+      .select:focus {
+        box-shadow: 0 0 0 2px #94a3b8 inset;
+      }
+      .label {
+        font-size: 0.875rem;
+        color: #475569;
+        font-weight: 600;
+      }
+      .table th {
+        text-align: left;
+        color: #475569;
+        font-weight: 600;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.5rem 0.25rem;
+      }
+      .table td {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 0.5rem 0.25rem;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-50">
+    <header
+      class="sticky top-0 z-10 backdrop-blur bg-white/80 border-b border-slate-200"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-slate-900"></div>
+          <h1 class="text-xl font-semibold">Yelp Hours Finder</h1>
+        </div>
+        <div class="hidden md:flex items-center gap-3 text-sm text-slate-500">
+          <span class="px-2 py-1 rounded-full bg-slate-100">PySpark</span>
+          <span class="px-2 py-1 rounded-full bg-slate-100">Flask</span>
+          <span class="px-2 py-1 rounded-full bg-slate-100">Tailwind</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <section class="card p-5">
+        <h2 class="text-lg font-semibold mb-4">
+          Tìm kiếm theo tên / địa điểm / thời gian
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="label">Tên doanh nghiệp</label>
+            <input
+              id="nameInput"
+              class="input"
+              list="nameList"
+              placeholder="Gõ để tìm & chọn"
+            />
+            <datalist id="nameList"></datalist>
+          </div>
+          <div>
+            <label class="label">Thành phố (city)</label>
+            <input
+              id="cityInput"
+              class="input"
+              list="cityList"
+              placeholder="Gõ để lọc & chọn từ danh sách"
+            />
+            <datalist id="cityList"></datalist>
+          </div>
+          <div>
+            <label class="label">Tiểu bang (state)</label>
+            <input
+              id="stateInput"
+              class="input"
+              list="stateList"
+              placeholder="Gõ để lọc & chọn từ danh sách"
+            />
+            <datalist id="stateList"></datalist>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label class="label">Thứ</label>
+            <select id="daySelect" class="select">
+              <option value="">-- Chọn thứ --</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Giờ bắt đầu</label>
+            <select id="startSelect" class="select" disabled>
+              <option value="">-- Chọn giờ theo dữ liệu --</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Giờ kết thúc</label>
+            <select id="endSelect" class="select" disabled>
+              <option value="">-- Chọn giờ theo dữ liệu --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center gap-3">
+          <button id="btnSearch" class="btn">Tìm kiếm</button>
+          <button id="btnClear" class="btn-outline">Xóa lọc</button>
+          <span id="resultInfo" class="text-sm text-slate-500"></span>
+        </div>
+      </section>
+
+      <section class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-lg font-semibold">Kết quả</h3>
+          <div class="text-sm text-slate-500">
+            Tối đa <span class="font-semibold">50</span> dòng
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="table w-full text-sm" id="resultTable">
+            <thead>
+              <tr>
+                <th>Business ID</th>
+                <th>Tên</th>
+                <th>Địa chỉ</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+                <th>Sun</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer class="py-8 text-center text-slate-400 text-sm">
+      © 2025 Yelp Hours Finder
+    </footer>
+
+    <script>
+      const API = window.location.origin;
+      const LIMIT = 50;
+
+      const nameInput = document.getElementById("nameInput");
+      const nameList = document.getElementById("nameList");
+      const cityInput = document.getElementById("cityInput");
+      const cityList = document.getElementById("cityList");
+      const stateInput = document.getElementById("stateInput");
+      const stateList = document.getElementById("stateList");
+
+      const daySelect = document.getElementById("daySelect");
+      const startSelect = document.getElementById("startSelect");
+      const endSelect = document.getElementById("endSelect");
+
+      const btnSearch = document.getElementById("btnSearch");
+      const btnClear = document.getElementById("btnClear");
+      const resultInfo = document.getElementById("resultInfo");
+      const tableBody = document.querySelector("#resultTable tbody");
+
+      let meta = null;
+      let citiesSet = new Set();
+      let statesSet = new Set();
+
+      function opt(value, text) {
+        const o = document.createElement("option");
+        o.value = value;
+        o.textContent = text ?? value;
+        return o;
+      }
+      function hoursCell(h) {
+        if (!h) return "";
+        return `${h.open}–${h.close}${h.overnight ? " (overnight)" : ""}`;
+      }
+
+      function fillTable(items) {
+        tableBody.innerHTML = "";
+        items.slice(0, LIMIT).forEach((r) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td class="font-mono text-xs">${r.business_id || ""}</td>
+        <td class="font-medium">${r.name || ""}</td>
+        <td>${r.address || ""}</td>
+        <td>${r.city || ""}</td>
+        <td>${r.state || ""}</td>
+        <td>${hoursCell(r.hours.monday)}</td>
+        <td>${hoursCell(r.hours.tuesday)}</td>
+        <td>${hoursCell(r.hours.wednesday)}</td>
+        <td>${hoursCell(r.hours.thursday)}</td>
+        <td>${hoursCell(r.hours.friday)}</td>
+        <td>${hoursCell(r.hours.saturday)}</td>
+        <td>${hoursCell(r.hours.sunday)}</td>`;
+          tableBody.appendChild(tr);
+        });
+        resultInfo.textContent = `${items.length} kết quả (hiển thị ${Math.min(
+          items.length,
+          LIMIT
+        )})`;
+      }
+
+      function populateTimeByDay(day) {
+        startSelect.innerHTML =
+          '<option value="">-- Chọn giờ theo dữ liệu --</option>';
+        endSelect.innerHTML =
+          '<option value="">-- Chọn giờ theo dữ liệu --</option>';
+        const ok = meta && meta.time_options && meta.time_options[day];
+        const starts = ok ? meta.time_options[day].starts : [];
+        const ends = ok ? meta.time_options[day].ends : [];
+        starts.forEach((t) => startSelect.appendChild(opt(t)));
+        ends.forEach((t) => endSelect.appendChild(opt(t)));
+        startSelect.disabled = starts.length === 0;
+        endSelect.disabled = ends.length === 0;
+      }
+
+      function enforceFromList(inputEl, validSet) {
+        const v = (inputEl.value || "").trim();
+        return validSet.has(v) ? v : "";
+      }
+
+      async function loadMeta() {
+        const res = await fetch(`${API}/api/meta`);
+        meta = await res.json();
+
+        nameList.innerHTML = "";
+        (meta.names || []).forEach((n) => nameList.appendChild(opt(n)));
+        cityList.innerHTML = "";
+        (meta.cities || []).forEach((c) => cityList.appendChild(opt(c)));
+        citiesSet = new Set(meta.cities || []);
+        stateList.innerHTML = "";
+        (meta.states || []).forEach((s) => stateList.appendChild(opt(s)));
+        statesSet = new Set(meta.states || []);
+
+        daySelect.innerHTML = "";
+        daySelect.appendChild(opt("", "-- Chọn thứ --"));
+        (meta.days || []).forEach((d) =>
+          daySelect.appendChild(opt(d, d.charAt(0).toUpperCase() + d.slice(1)))
+        );
+        daySelect.addEventListener("change", () => {
+          const day = daySelect.value;
+          if (day) populateTimeByDay(day);
+          else {
+            startSelect.innerHTML =
+              '<option value="">-- Chọn giờ theo dữ liệu --</option>';
+            endSelect.innerHTML =
+              '<option value="">-- Chọn giờ theo dữ liệu --</option>';
+            startSelect.disabled = true;
+            endSelect.disabled = true;
+          }
+        });
+      }
+
+      async function search() {
+        const params = new URLSearchParams();
+        const name = (nameInput.value || "").trim();
+        if (name) params.set("name", name);
+
+        const city = enforceFromList(cityInput, citiesSet);
+        const state = enforceFromList(stateInput, statesSet);
+        if (city) params.set("city", city);
+        if (state) params.set("state", state);
+
+        const day = daySelect.value;
+        if (day) params.set("day", day);
+        const start = startSelect.value;
+        if (start) params.set("start", start);
+        const end = endSelect.value;
+        if (end) params.set("end", end);
+
+        const res = await fetch(`${API}/api/search?${params.toString()}`);
+        const data = await res.json();
+        fillTable(data.results || []);
+      }
+
+      btnSearch.addEventListener("click", search);
+      btnClear.addEventListener("click", () => {
+        nameInput.value = "";
+        cityInput.value = "";
+        stateInput.value = "";
+        daySelect.value = "";
+        startSelect.innerHTML =
+          '<option value="">-- Chọn giờ theo dữ liệu --</option>';
+        endSelect.innerHTML =
+          '<option value="">-- Chọn giờ theo dữ liệu --</option>';
+        startSelect.disabled = true;
+        endSelect.disabled = true;
+        resultInfo.textContent = "";
+        tableBody.innerHTML = "";
+      });
+
+      loadMeta();
+    </script>
+  </body>
+</html>

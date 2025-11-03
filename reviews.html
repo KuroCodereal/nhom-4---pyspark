@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Yelp Reviews</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;max-width:1100px;margin:24px auto;padding:0 16px}
+    h1{margin:0 0 16px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    input,select,button{padding:8px 10px;font-size:14px}
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;font-size:14px;vertical-align:top}
+    th{background:#f7f7f7}
+    .muted{color:#666}
+    .kpis{display:flex;gap:16px;margin:8px 0}
+    .kpi{background:#fafafa;border:1px solid #eee;border-radius:8px;padding:8px 12px}
+  </style>
+</head>
+<body>
+  <h1>🔎 Yelp Reviews</h1>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="row">
+    <input id="business_id" placeholder="business_id (chính xác)" style="min-width:280px">
+    <input id="q" placeholder="Từ khóa nội dung (vd: pizza)">
+    <select id="sort">
+      <option value="date_desc" selected>Sắp xếp: Ngày ↓</option>
+      <option value="date_asc">Sắp xếp: Ngày ↑</option>
+      <option value="stars_desc">Sắp xếp: Sao ↓</option>
+      <option value="stars_asc">Sắp xếp: Sao ↑</option>
+    </select>
+    <label>⭐ từ <input id="stars_min" type="number" min="1" max="5" value="1" style="width:60px"></label>
+    <label>đến <input id="stars_max" type="number" min="1" max="5" value="5" style="width:60px"></label>
+    <button id="btnSearch">Tìm</button>
+  </div>
+
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th>Ngày</th><th>Sao</th><th>Business</th><th>User</th><th>Review</th><th>Useful/Funny/Cool</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+<script>
+async function loadMeta(){
+  const r = await fetch('/api/reviews/meta');
+  const j = await r.json();
+  const k = document.getElementById('kpis');
+  k.innerHTML = `
+    <div class="kpi"><b>Tổng reviews</b><div>${j.total_reviews?.toLocaleString?.() ?? j.total_reviews}</div></div>
+    <div class="kpi"><b>Năm có dữ liệu</b><div>${(j.years||[]).join(', ') || 'N/A'}</div></div>
+  `;
+}
+
+async function search(){
+  const bid = document.getElementById('business_id').value.trim();
+  const q   = document.getElementById('q').value.trim();
+  const srt = document.getElementById('sort').value;
+  const smin= document.getElementById('stars_min').value || 1;
+  const smax= document.getElementById('stars_max').value || 5;
+  const p = new URLSearchParams({sort:srt, stars_min:smin, stars_max:smax, limit:'50'});
+  if(bid) p.set('business_id', bid);
+  if(q)   p.set('q', q);
+  const r = await fetch('/api/reviews/search?' + p.toString());
+  const j = await r.json();
+  const tb = document.querySelector('#tbl tbody');
+  tb.innerHTML = '';
+  (j.results||[]).forEach(row=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.date||''}</td>
+      <td>${row.stars||''}</td>
+      <td>${row.business_id||''}</td>
+      <td>${row.user_id||''}</td>
+      <td>${row.text||''}</td>
+      <td>${row.useful}/${row.funny}/${row.cool}</td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+document.getElementById('btnSearch').addEventListener('click', search);
+loadMeta();
+</script>
+</body>
+</html>
+
